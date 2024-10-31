@@ -4,10 +4,6 @@ CJKmainfont: Songti SC
 author: "your name"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    latex_engine: xelatex
-  word_document:
-    toc: yes
   html_document:
     code_folding: show
     fig_caption: yes
@@ -16,7 +12,12 @@ output:
     number_sections: yes
     theme: cosmo
     toc: yes
+  word_document:
+    toc: yes
+  pdf_document:
+    latex_engine: xelatex
 ---
+
 ```{r setup, include = FALSE,echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE,error = FALSE, warning = FALSE, message = FALSE,
                       out.width = "100%", split = FALSE, fig.align = "center")
@@ -32,29 +33,28 @@ library(ggrepel)
 
 # 你的主要发现
 
-1. 发现1
+1.  房屋单价、总价及面积分布均呈左偏趋势，偏度较大
 
-1. 发现2
-  
-1. 发现3
-    
+2.  房屋所属区域对房屋单价影响较大，所处楼层及受否靠近地铁影响较小
+
+3.  房屋建筑年限分布与国家楼市政策密切相关
 
 # 数据介绍
 
 本报告**链家**数据获取方式如下：
-    
-报告人在2023年9月12日获取了[链家武汉二手房网站](https://wh.lianjia.com/ershoufang/)数据。
-    
-- 链家二手房网站默认显示100页，每页30套房产，因此本数据包括3000套房产信息；
-    
-- 数据包括了页面可见部分的文本信息，具体字段及说明见作业说明。
 
- **说明：**数据仅用于教学；由于不清楚链家数据的展示规则，因此数据可能并不是武汉二手房市场的随机抽样，结论很可能有很大的偏差，甚至可能是错误的。
-    
+报告人在2024年10月27日获取了[链家武汉二手房网站](https://wh.lianjia.com/ershoufang/)数据。
+
+-   链家二手房网站默认显示100页，每页30套房产，因此本数据包括3000套房产信息；
+
+-   数据包括了页面可见部分的文本信息，具体字段及说明见作业说明。
+
+**说明：**数据仅用于教学；由于不清楚链家数据的展示规则，因此数据可能并不是武汉二手房市场的随机抽样，结论很可能有很大的偏差，甚至可能是错误的。
+
 ```{r}
 # 载入数据和预处理
 
-lj<- read_csv("/Users/jameschen/Documents/02_Teaching/12_quantitative_thinking_R/data/2023-09-12_cleaned.csv")
+lj<- read_csv("E:/4 MEM/课程/商务与经济统计/作业/wh_2ys.csv")
 # EDA ---------------------------------------------------------------------
 
 ## 如下语句可以解决画图中的中文显示问题，当然你可以用showtext包来解决
@@ -77,78 +77,155 @@ lj %>%
 ```
 
 各变量的简短信息：
+
 ```{r}
 glimpse(lj)
 ```
 
 各变量的简短统计：
+
 ```{r}
 summary(lj)
 ```
 
 可以看到：
 
-- 直观结论1
+-   二手房房屋售价总价主要集中于100万至200万之间
 
-- 直观结论2
+-   二手房房屋售价均价1.1万/平米至1.9万/平米之间
 
-- ...
+-   二手房房屋年限平均为10年
 
 # 探索性分析
 
-## 变量1的数值描述与图形
+## 房屋单价的数值描述与图形
+
+```{r}
+library(psych)
+describe(lj$price_sqm)
+p <- lj %>% 
+         ggplot() +
+         geom_histogram(aes(price_sqm))
+ p +
+                geom_vline(aes(xintercept = median(price_sqm)),color='red',linetype="dashed") +
+                annotate("text",x=median(lj$price_sqm),y=1200,label=median(lj$price_sqm),color='blue')
+```
 
 发现：
 
-- 发现1
+-   房屋单价分布呈左偏趋势
 
-- 发现2
+-   高价位房屋价格较为分散，低价位房屋价格较为集中
 
-## 变量2的数值描述与图形
+## 建筑面积的数值描述与图形
 
-发现：
-
-- 发现1
-
-- 发现2
-
-## 变量...的数值描述与图形
-
-发现：
-
-- 发现1
-
-- 发现2
-
-## 探索问题1
+```{r}
+describe(lj$building_area)
+p <- lj %>% 
+         ggplot() +
+         geom_histogram(aes(building_area))
+ p +
+                geom_vline(aes(xintercept = median(building_area)),color='red',linetype="dashed") +
+                annotate("text",x=median(lj$building_area),y=1200,label=median(lj$building_area),color='blue')
+```
 
 发现：
 
-- 发现1
+-   二手房建筑面积分布较为集中，呈左偏趋势
 
-- 发现2
+-   90-100平米面积的二手房屋数量最高，200平米以上房屋数量分散
 
-## 探索问题2
+## 房屋总价的数值描述与图形
+
+```{r}
+
+describe(lj$price_ttl)
+p <- lj %>% 
+         ggplot() +
+         geom_histogram(aes(price_ttl),bins = 50)
+ p +
+                geom_vline(aes(xintercept = median(price_ttl)),color='red',linetype="dashed") +
+                annotate("text",x=median(lj$price_ttl),y=1200,label=median(lj$price_ttl),color='blue')
+```
 
 发现：
 
-- 发现1
+-   房屋总价分布十分集中，mad切尾均值约为70万元，中位数为142万
 
-- 发现2
+-   高价房屋分布分散
 
-## 探索问题3
+## 二手房建筑年限房屋数量分布
+
+```{r}
+years <- lj %>% 
+        group_by(building_year) %>% 
+        count()
+ggplot(years, aes(x=building_year, y=n)) + 
+                geom_line() +
+    scale_x_continuous(breaks = seq(1911,2024,1)) +
+    scale_y_continuous(limits = c(0, 250),breaks = seq(0,250,10))+
+    theme(axis.text.x = element_text(angle = 45,size = 6))
+```
 
 发现：
 
-- 发现1
+-   二手房供应建筑年限与国家楼市政策密切相关，例如2015年首套房首付款比例降低等促进售房政策导致房价上升，供房增加
 
-- 发现2
+## 房屋所处楼层对房屋单价的影响
 
----
+```{r}
+lj %>%filter(hml %in% c("高","中","低")) %>% 
+  ggplot(aes(x=factor(hml), y=price_sqm))+
+  geom_boxplot(width = 0.2, height = 0, alpha = 1/5) + 
+        scale_y_continuous(labels=dollar) 
+```
+
+发现：
+
+-   不同楼层房屋单价分布差异较小，房屋楼层对单价影响较小
+
+-   高楼层房屋单价要稍高于其他类型
+
+## 房屋所处区域对房屋单价的影响
+
+```{r}
+lj_region <- lj %>%
+  group_by(property_region) %>%
+  filter(n()>100) %>%
+  ungroup() 
+ggplot(lj_region, aes(x=factor(property_region), y=price_sqm)) + 
+        geom_boxplot(width = 0.2, height = 0, alpha = 1/5) + 
+        scale_y_continuous(labels=dollar) 
+```
+
+发现：选取房源数量大于100的区域进行房屋单价分析
+
+-   不同区域房屋单价分布差异较大，房屋所属区域对房屋单价有较大影响
+
+-   市内房屋价格普遍高于郊区房屋价格
+
+## 是否靠近地铁对房屋单价的影响
+
+```{r}
+lj %>%drop_na(near_subway) %>%
+    ggplot(aes(x=factor(near_subway), y=price_sqm))+
+  geom_boxplot(width = 0.2, height = 0, alpha = 1/5) + 
+        scale_y_continuous(labels=dollar) 
+
+```
+
+发现：
+
+-   否靠近地铁对房屋单价有所影响，但差异较小
+
+-   靠近地铁的房屋单价分布要稍高于非靠近地铁的房屋
+
+———————————————————————————————————————
 
 # 发现总结
 
-用1-3段话总结你的发现。
+1.  房屋单价、总价及面积分布均呈左偏趋势，偏度较大
 
+2.  房屋所属区域对房屋单价影响较大，所处楼层及受否靠近地铁影响较小
 
-
+3.  房屋建筑年限分布与国家楼市政策密切相关
